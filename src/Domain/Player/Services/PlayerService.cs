@@ -1,12 +1,11 @@
 ﻿namespace Assets.Scripts.src.Domain.Player.Services
 {
+    using Assets.Scripts.src.Application.States.Services;
+    using Assets.Scripts.src.Common.Contracts;
+    using Map.Services;
     using System.Collections;
     using UnityEngine;
     using UnityEngine.InputSystem;
-    using Assets.Scripts.src.Common.Contracts;
-    using Map.Services;
-    using UnityEngine.Tilemaps;
-    using Assets.Scripts.src.Application.States.Services;
 
     public class PlayerService : Singleton<PlayerService>
     {
@@ -16,7 +15,8 @@
 
         public GameObject PlayerPrefab;
 
-        public bool IsPlayerInstantiated { get { return _players.Count > 0; } }
+        public bool IsPlayerInstantiated
+        { get { return _players.Count > 0; } }
 
         public void InstantiatePlayer()
         {
@@ -34,7 +34,7 @@
                 {
                     Vector3Int cellPosition = GetCellFromMousePosition();
 
-                    if (IsCellInMap(cellPosition) && !IsPlayerInstantiated)
+                    if (MapService.Instance.IsCellInMap(cellPosition) && !IsPlayerInstantiated)
                     {
                         InstantiatePlayerAtCell(cellPosition);
                         yield break;
@@ -52,12 +52,7 @@
         {
             _players.Add(Instantiate(PlayerPrefab, MapService.Instance.Tilemap.GetCellCenterWorld(cellPosition), Quaternion.identity, PlayerContainer.transform));
             GameStateService.Instance.SetINSTANTIATED_PLAYERState();
-            Time.timeScale = 1;            
-        }
-
-        private static bool IsCellInMap(Vector3Int cellPosition)
-        {
-            return MapService.Instance.Tilemap.HasTile(cellPosition);
+            Time.timeScale = 1;
         }
 
         private static Vector3Int GetCellFromMousePosition()

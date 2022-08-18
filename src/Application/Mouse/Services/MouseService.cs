@@ -34,5 +34,17 @@ namespace Assets.Scripts.src.Application.Mouse.Services
             }
             
         }
+
+        public Vector3Int GetCellFromMousePosition()
+        {
+            //         Get mouse position
+            Vector2 mousePosition = Mouse.current.position.ReadValue();
+            Debug.Log("Mouse position: " + mousePosition);
+            var worldPoint = Camera.main.ScreenToWorldPoint(mousePosition);
+            worldPoint.z = 0;
+            Debug.Log("World point: " + worldPoint);
+            var cellPosition = MapService.Instance.Tilemap.WorldToCell(worldPoint);
+            return cellPosition;
+        }
     }
 }

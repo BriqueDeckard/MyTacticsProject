@@ -6,7 +6,6 @@
     using System.Collections;
     using UnityEngine;
     using UnityEngine.InputSystem;
-    using UnityEngine.InputSystem.Controls;
 
     public class NpcService : Singleton<NpcService>
     {
@@ -15,52 +14,36 @@
         public GameObject NpcPrefab;
 
         private ArrayList _npcs = new ArrayList();
-        public bool IsNpcInstantiated { get { return _npcs.Count > 0; } }
+
+        public bool IsNpcInstantiated
+        { get { return _npcs.Count > 0; } }
 
         public void InstantiateNpc()
         {
             Debug.Log("Instantiate Npc");
-            StartCoroutine(WaitForClick());
+            StartCoroutine(InstantiateNpcCoroutine());
         }
 
-        private IEnumerator WaitForClick()
+        private IEnumerator InstantiateNpcCoroutine()
         {
             Time.timeScale = 0;
             while (true)
             {
-                if (Mouse.current.leftButton.wasPressedThisFrame)
+                Vector3Int cellPosition = MapService.Instance.GetRandomValidCellPosition();
+                if (IsCellInMap(cellPosition) && !IsNpcInstantiated)
                 {
-                    Vector3Int cellPosition = GetCellFromMousePosition();
-
-                    if (IsCellInMap(cellPosition) && !IsNpcInstantiated)
-                    {
-                        InstantiateNpcAtCell(cellPosition);
-                        yield break;
-                    }
-                    else
-                    {
-                        Debug.Log("Position: " + cellPosition + " is not in tilemap cell bounds");
-                    }
+                    InstantiateNpcAtCell(cellPosition);
+                    
+                    yield break;
                 }
                 yield return null;
             }
         }
+
         private static bool IsCellInMap(Vector3Int cellPosition)
         {
             return MapService.Instance.Tilemap.HasTile(cellPosition);
-        }
-
-        private static Vector3Int GetCellFromMousePosition()
-        {
-            //         Get mouse position
-            Vector2 mousePosition = Mouse.current.position.ReadValue();
-            Debug.Log("Mouse position: " + mousePosition);
-            var worldPoint = Camera.main.ScreenToWorldPoint(mousePosition);
-            worldPoint.z = 0;
-            Debug.Log("World point: " + worldPoint);
-            var cellPosition = MapService.Instance.Tilemap.WorldToCell(worldPoint);
-            return cellPosition;
-        }
+        }      
 
         private void InstantiateNpcAtCell(Vector3Int cellPosition)
         {

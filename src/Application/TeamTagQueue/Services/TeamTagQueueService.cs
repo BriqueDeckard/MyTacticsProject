@@ -104,25 +104,39 @@ namespace Assets.Scripts.src.Application.TeamTagQueue.Services
                 var teamUnitsQueue = new Queue<GameObject>();
                 teamUnits.ForEach(x => teamUnitsQueue.Enqueue(x));
 
-                while(teamUnitsQueue.Count > 0)
+                while (teamUnitsQueue.Count > 0)
                 {
                     var unit = teamUnitsQueue.Dequeue();
-                    
-                    if (teamTag.Equals(TeamTag.PLAYER))
-                    {
-                        MyPlayer myPlayer = unit.GetComponent<MyPlayer>();
-                        Debug.Log("Unit: " + unit.name + " - " + myPlayer.TeamTag);
-                        myPlayer.CharacterAction();
-                    }
-                    else
-                    {
-                        Npc npc = unit.GetComponent<Npc>();
-                        Debug.Log("Unit: " + unit.name + " - " + npc.TeamTag);
-                        npc.CharacterAction();
-                    }
-                }
 
+                    ProcessCharacterUnit(teamTag, unit);
+                }
             }
+        }
+
+        private static void ProcessCharacterUnit(TeamTag teamTag, GameObject unit)
+        {
+            if (teamTag.Equals(TeamTag.PLAYER))
+            {
+                ProcessPlayerUnit(unit);
+            }
+            else
+            {
+                ProcessNpcUnit(unit);
+            }
+        }
+
+        private static void ProcessNpcUnit(GameObject unit)
+        {
+            Npc npc = unit.GetComponent<Npc>();
+            Debug.Log("Unit: " + unit.name + " - " + npc.TeamTag);
+            npc.CharacterAction();
+        }
+
+        private static void ProcessPlayerUnit(GameObject unit)
+        {
+            MyPlayer myPlayer = unit.GetComponent<MyPlayer>();
+            Debug.Log("Unit: " + unit.name + " - " + myPlayer.TeamTag);
+            myPlayer.CharacterAction();
         }
 
         private static void InstantiateCharacters(TeamTag teamTag)

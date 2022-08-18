@@ -1,5 +1,4 @@
 ﻿using Assets.Scripts.src.Common.Contracts;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -13,49 +12,18 @@ namespace Assets.Scripts.src.Domain.Map.Services
         public Tilemap Tilemap;
         public Tilemap HighlighTilemap;
         public Dictionary<Vector3Int, Vector3> AvailableLocations;
-        
         public Tile OverlayTile;
         private Vector3Int PreviousCellPosition;
 
-        private void Awake()
-        {
-            AvailableLocations = new Dictionary<Vector3Int, Vector3>();
-        }
-
-        private void Start()
-        {
-            if (Tilemap == null)
-            {
-                Tilemap = GetComponent<Tilemap>();
-            }
-
-            FillAvailableTiles();
-        }
-
-        private void FillAvailableTiles()
-        {
-            foreach (var pos in Tilemap.cellBounds.allPositionsWithin)
-            {
-                Vector3Int localPlace = new Vector3Int(pos.x, pos.y, pos.z);
-                Vector3 place = Tilemap.CellToWorld(localPlace);
-                if (Tilemap.HasTile(localPlace))
-                {
-                    AvailableLocations.Add(localPlace, place);
-                }
-            }
-        }
-
         public Vector3Int GetCellPosition(Vector3 vector3)
         {
-            return Grid.WorldToCell(vector3);
+            return Instance.Grid.WorldToCell(vector3);
         }
-
-  
 
         public bool TileIsAvailable(Vector3Int position)
         {
             var worldPosition = Grid.CellToWorld(position);
-            return AvailableLocations.Keys.Any(x => (x.x == worldPosition.x) && (x.y == worldPosition.y));
+            return Instance.AvailableLocations.Keys.Any(x => (x.x == worldPosition.x) && (x.y == worldPosition.y));
         }
 
         public Vector3 GetWorldPointPosition(Vector3 position)
@@ -65,22 +33,22 @@ namespace Assets.Scripts.src.Domain.Map.Services
 
         public bool IsTileAvailable(Vector2 worldPositionValue)
         {
-            return AvailableLocations.Keys.Any(position => (position.x == worldPositionValue.x && position.y == worldPositionValue.y));
+            return Instance.AvailableLocations.Keys.Any(position => (position.x == worldPositionValue.x && position.y == worldPositionValue.y));
         }
 
         public void SetTileActive(Vector3Int cellPosition)
         {
-            HighlighTilemap.SetTile(cellPosition, OverlayTile);
+            Instance.HighlighTilemap.SetTile(cellPosition, OverlayTile);
         }
+
         public void SetTileOverlayed(Vector3Int cellPosition)
         {
-            if(cellPosition != PreviousCellPosition)
+            if (cellPosition != PreviousCellPosition)
             {
-                HighlighTilemap.SetTile(PreviousCellPosition, null);
-                HighlighTilemap.SetTile(cellPosition, OverlayTile);
-                PreviousCellPosition = cellPosition;
+                Instance.HighlighTilemap.SetTile(PreviousCellPosition, null);
+                Instance.HighlighTilemap.SetTile(cellPosition, OverlayTile);
+                Instance.PreviousCellPosition = cellPosition;
             }
-            
         }
 
         public void SetTileStandard(Vector3Int cellPosition)
@@ -89,7 +57,7 @@ namespace Assets.Scripts.src.Domain.Map.Services
             Tilemap.SetColor(cellPosition, Color.white);
         }
 
-        public Vector3Int MouseToCell(Vector2 mouseInput) 
+        public Vector3Int MouseToCell(Vector2 mouseInput)
         {
             Vector3 worldPos = MouseToWorld(mouseInput);
             Vector3Int cellPos = WorldToCell(worldPos);
@@ -103,18 +71,78 @@ namespace Assets.Scripts.src.Domain.Map.Services
 
         public Vector3Int WorldToCell(Vector3 worldPosition)
         {
-            return Grid.WorldToCell(worldPosition);
+            return Instance.Grid.WorldToCell(worldPosition);
         }
 
         public Vector3 CellCenterToWorld(Vector3Int cellPosition)
         {
-            return Tilemap.GetCellCenterWorld(cellPosition);
+            return Instance.Tilemap.GetCellCenterWorld(cellPosition);
         }
 
-        public bool HasTile(Vector3Int tilePosition)
+        public bool IsCellInMap(Vector3Int cellPosition)
         {
-            var hasTile = Tilemap.HasTile(tilePosition);
-            return hasTile;
+            return Instance.Tilemap.HasTile(cellPosition);
+        }
+
+        public Vector3Int GetRandomCellPosition()
+        {
+            int x = Instance.GetRandomXInBounds();
+            int y = Instance.GetRandomYInBounds();
+            return new Vector3Int(x, y);
+        }
+
+        public Vector3Int GetRandomValidCellPosition()
+        {
+            var cellPosition = Instance.GetRandomCellPosition();
+            while (!Instance.Tilemap.HasTile(cellPosition))
+            {
+                cellPosition = Instance.GetRandomCellPosition();
+            }
+            return cellPosition;
+        }
+
+        private int GetRandomYInBounds()
+        {
+            var yMin = Instance.Tilemap.cellBounds.yMin;
+            var yMax = Instance.Tilemap.cellBounds.yMax;
+            var y = Random.Range(yMin, yMax);
+            return y;
+        }
+
+        private int GetRandomXInBounds()
+        {
+            var xMin = Instance.Tilemap.cellBounds.xMin;
+            var xMax = Instance.Tilemap.cellBounds.xMax;
+            var x = Random.Range(xMin, xMax);
+            return x;
+        }
+
+        private void Awake()
+        {
+            Instance.AvailableLocations = new Dictionary<Vector3Int, Vector3>();
+        }
+
+        private void Start()
+        {
+            if (Instance.Tilemap == null)
+            {
+                Instance.Tilemap = GetComponent<Tilemap>();
+            }
+
+            Instance.FillAvailableTiles();
+        }
+
+        private void FillAvailableTiles()
+        {
+            foreach (var pos in Instance.Tilemap.cellBounds.allPositionsWithin)
+            {
+                Vector3Int localPlace = new Vector3Int(pos.x, pos.y, pos.z);
+                Vector3 place = Instance.Tilemap.CellToWorld(localPlace);
+                if (Instance.Tilemap.HasTile(localPlace))
+                {
+                    Instance.AvailableLocations.Add(localPlace, place);
+                }
+            }
         }
     }
 }
