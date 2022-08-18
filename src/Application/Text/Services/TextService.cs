@@ -1,9 +1,9 @@
-namespace Assets.Scripts.src.Text.Services
+namespace Assets.Scripts.src.Application.Text.Services
 {
     using Common.Contracts;
     using UnityEngine.UI;
 
-    public class TextManager : Singleton<TextManager>
+    public class TextService : Singleton<TextService>
     {
         public Text InfoText1;
 

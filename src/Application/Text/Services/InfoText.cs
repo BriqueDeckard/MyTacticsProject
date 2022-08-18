@@ -1,4 +1,4 @@
-﻿namespace Assets.Scripts.src.Text.Services
+﻿namespace Assets.Scripts.src.Application.Text.Services
 {
     public enum InfoText
     {

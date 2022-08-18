@@ -1,9 +1,13 @@
-namespace Assets.Scripts.src.TeamTagQueue.Services
+namespace Assets.Scripts.src.Application.TeamTagQueue.Services
 {
-    using Assets.Scripts.src.Panel.Services;
-    using Assets.Scripts.src.Text.Services;
+    using Assets.Scripts.src.Application.Panel.Services;
+    using Assets.Scripts.src.Application.States.Services;
+    using Assets.Scripts.src.Application.Text.Services;
+    using Assets.Scripts.src.Domain.Npc.Domain.Npc;
+    using Assets.Scripts.src.Domain.Player.Domain;
     using Common.Contracts;
     using System.Collections.Generic;
+    using System.Linq;
     using TeamTag.Domain.Enum;
     using TeamTag.Services;
     using UnityEngine;
@@ -27,6 +31,10 @@ namespace Assets.Scripts.src.TeamTagQueue.Services
         /// Keeps track of the order of the TeamTags in the queue.
         /// </summary>
         private List<TeamTag> teamTagOrder;
+
+        private TeamTag currentTeamTag;
+
+        public TeamTag CurrentTeamTag => currentTeamTag;
 
         #region UnityLifeCycle
 
@@ -84,23 +92,56 @@ namespace Assets.Scripts.src.TeamTagQueue.Services
         {
             // Get the teamtag for this turn and the units corresponding to this team.
             var teamTag = teamTagQueue.Dequeue();
-            var teamUnits = GameObject.FindGameObjectsWithTag(teamTag.ToString());
-            if (teamUnits.Length <= 0)
+            currentTeamTag = teamTag;
+            var teamUnits = GameObject.FindGameObjectsWithTag(teamTag.ToString()).ToList();
+            if (teamUnits.Count <= 0)
             {
-                Debug.Log("For team : " + teamTag + ",  0 units, need to instantiate");
-                Time.timeScale = 0;
-                if (teamTag.Equals(TeamTag.PLAYER))
+                InstantiateCharacters(teamTag);
+            }
+            else
+            {
+                Debug.Log("Team " + teamTag + " plays.");
+                var teamUnitsQueue = new Queue<GameObject>();
+                teamUnits.ForEach(x => teamUnitsQueue.Enqueue(x));
+
+                while(teamUnitsQueue.Count > 0)
                 {
-                    Debug.Log("Instantiate team PLAYER");
-                    PanelManager.Instance.TogglePanel(Panels.PANEL_1, true);
-                    TextManager.Instance.SetInfoTextText(InfoText.INFO_TEXT_1, "PLAYER plays.");
+                    var unit = teamUnitsQueue.Dequeue();
+                    
+                    if (teamTag.Equals(TeamTag.PLAYER))
+                    {
+                        MyPlayer myPlayer = unit.GetComponent<MyPlayer>();
+                        Debug.Log("Unit: " + unit.name + " - " + myPlayer.TeamTag);
+                        myPlayer.CharacterAction();
+                    }
+                    else
+                    {
+                        Npc npc = unit.GetComponent<Npc>();
+                        Debug.Log("Unit: " + unit.name + " - " + npc.TeamTag);
+                        npc.CharacterAction();
+                    }
                 }
-                else if (teamTag.Equals(TeamTag.NPC))
-                {
-                    Debug.Log("Instantiate team NPC");
-                    PanelManager.Instance.TogglePanel(Panels.PANEL_1, true);
-                    TextManager.Instance.SetInfoTextText(InfoText.INFO_TEXT_1, "NPC plays.");
-                }
+
+            }
+        }
+
+        private static void InstantiateCharacters(TeamTag teamTag)
+        {
+            Debug.Log("For team : " + teamTag + ",  0 units, need to instantiate");
+            Time.timeScale = 0;
+            if (teamTag.Equals(TeamTag.PLAYER))
+            {
+                GameStateService.Instance.SetINSTANTIATING_PLAYERState();
+                Debug.Log("Instantiate team PLAYER");
+                PanelService.Instance.TogglePanel(Panels.PANEL_1, true);
+                TextService.Instance.SetInfoTextText(InfoText.INFO_TEXT_1, "PLAYER plays.");
+            }
+            else if (teamTag.Equals(TeamTag.NPC))
+            {
+                GameStateService.Instance.SetINSTANTIATING_NPCState();
+                Debug.Log("Instantiate team NPC");
+                PanelService.Instance.TogglePanel(Panels.PANEL_1, true);
+                TextService.Instance.SetInfoTextText(InfoText.INFO_TEXT_1, "NPC plays.");
             }
         }
     }

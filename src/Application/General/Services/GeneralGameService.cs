@@ -1,6 +1,10 @@
-namespace Assets.Scripts.src.Common.Contracts
+namespace Assets.Scripts.src.Application.General.Services
 {
+    using Assets.Scripts.src.Application.States.Domain.Enum;
+    using Assets.Scripts.src.Application.States.Services;
+    using Assets.Scripts.src.Common.Contracts;
     using System;
+    using System.Linq;
     using TeamTagQueue.Services;
     using UnityEngine;
 
@@ -9,6 +13,7 @@ namespace Assets.Scripts.src.Common.Contracts
     /// </summary>
     public class GeneralGameService : Singleton<GeneralGameService>
     {
+        public bool GameIsReady = false;
         #region UnityLifeCycle
 
         /// <summary>
@@ -43,6 +48,12 @@ namespace Assets.Scripts.src.Common.Contracts
         {
             FillTeamTagQueueIfEmpty(() => TeamTagQueueService.Instance.TeamTagQueueIsEmpty);
             DequeueTeamTagQueueIfNotEmpty(() => TeamTagQueueService.Instance.TeamTagQueueIsEmpty);
+            var history = GameStateService.Instance.history;
+            if (history.Exists(x => x.Equals(GameState.INSTANTIATED_NPC)) && history.Exists(x => x.Equals(GameState.INSTANTIATED_PLAYER)))
+            {
+                GameIsReady = true;
+                GameStateService.instance.SetGAME_IS_READYState();
+            }
         }
 
         /// <summary>
@@ -67,8 +78,7 @@ namespace Assets.Scripts.src.Common.Contracts
         /// <param name="teamTagQueueIsEmpty"></param>
         private void DequeueTeamTagQueueIfNotEmpty(Func<bool> teamTagQueueIsEmpty)
         {
-            bool test = teamTagQueueIsEmpty();
-            if (test)
+            if (teamTagQueueIsEmpty())
             {
                 return;
             }
