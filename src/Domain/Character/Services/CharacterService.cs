@@ -1,6 +1,9 @@
-﻿namespace Assets.Scripts.src.Character.Services
+﻿namespace Assets.Scripts.src.Domain.Character.Services
 {
+    using Assets.Scripts.src.Application.Panel.Services;
+    using Assets.Scripts.src.Application.States.Services;
     using Assets.Scripts.src.Application.TeamTagQueue.Services;
+    using Assets.Scripts.src.Application.Text.Services;
     using Assets.Scripts.src.Common.Contracts;
     using Assets.Scripts.src.Domain.Npc.Services;
     using Assets.Scripts.src.Domain.Player.Services;
@@ -28,5 +31,23 @@
                     break;
             }
         }
+
+        public void InstantiateCharacters(TeamTag teamTag)
+        {
+            Debug.Log("For team : " + teamTag + ",  0 units, need to instantiate");
+            Time.timeScale = 0;
+            if (teamTag.Equals(TeamTag.PLAYER))
+            {
+                PlayerService.Instance.InstantiatePlayerInfo();
+            }
+            else if (teamTag.Equals(TeamTag.NPC))
+            {
+                NpcService.Instance.InstantiateNpcInfo();
+            }
+        }
+
+       
+
+       
     }
 }

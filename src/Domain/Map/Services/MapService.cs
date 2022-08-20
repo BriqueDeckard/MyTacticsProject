@@ -1,17 +1,21 @@
-﻿using Assets.Scripts.src.Common.Contracts;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
-using UnityEngine.Tilemaps;
+﻿
 
 namespace Assets.Scripts.src.Domain.Map.Services
 {
+    using Assets.Scripts.src.Common.Contracts;
+    using System.Collections.Generic;
+    using System.Linq;
+    using UnityEngine;
+    using UnityEngine.Tilemaps;
+    using Assets.Scripts.src.Domain.Character.Domain;
     public class MapService : Singleton<MapService>
     {
         public Grid Grid;
         public Tilemap Tilemap;
         public Tilemap HighlighTilemap;
         public Dictionary<Vector3Int, Vector3> AvailableLocations;
+        public Dictionary<Vector3Int, Character> OccupiedLocations;
+
         public Tile OverlayTile;
         private Vector3Int PreviousCellPosition;
 
@@ -120,6 +124,7 @@ namespace Assets.Scripts.src.Domain.Map.Services
         private void Awake()
         {
             Instance.AvailableLocations = new Dictionary<Vector3Int, Vector3>();
+            Instance.OccupiedLocations = new Dictionary<Vector3Int, Character>();
         }
 
         private void Start()
@@ -143,6 +148,14 @@ namespace Assets.Scripts.src.Domain.Map.Services
                     Instance.AvailableLocations.Add(localPlace, place);
                 }
             }
+        }
+
+        private void Update()
+        {
+            OccupiedLocations.ToList().ForEach(x =>
+            {
+                Debug.Log("Occupied:" + x);
+            });
         }
     }
 }

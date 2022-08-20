@@ -1,4 +1,4 @@
-﻿namespace Assets.Scripts.src.Character.Domain
+﻿namespace Assets.Scripts.src.Domain.Character.Domain
 {
     using Assets.Scripts.src.TeamTag.Domain.Enum;
     using UnityEngine;

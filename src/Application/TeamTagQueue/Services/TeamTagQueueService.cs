@@ -3,8 +3,11 @@ namespace Assets.Scripts.src.Application.TeamTagQueue.Services
     using Assets.Scripts.src.Application.Panel.Services;
     using Assets.Scripts.src.Application.States.Services;
     using Assets.Scripts.src.Application.Text.Services;
-    using Assets.Scripts.src.Domain.Npc.Domain.Npc;
+    using Assets.Scripts.src.Domain.Character.Services;
+    using Assets.Scripts.src.Domain.Npc.Domain;
+    using Assets.Scripts.src.Domain.Npc.Services;
     using Assets.Scripts.src.Domain.Player.Domain;
+    using Assets.Scripts.src.Domain.Player.Services;
     using Common.Contracts;
     using System.Collections.Generic;
     using System.Linq;
@@ -71,21 +74,6 @@ namespace Assets.Scripts.src.Application.TeamTagQueue.Services
         }
 
         /// <summary>
-        /// Order the teams for the rest of the game.
-        /// </summary>
-        private void FillTeamTagOrder()
-        {
-            // Initialize the list with the one that starts positioned first.
-            teamTagOrder = new List<TeamTag>();
-            TeamTag beginner = TeamTagService.Instance.RandomTeamTag;
-            teamTagOrder.Add(beginner);
-
-            // Add the other teams.
-            List<TeamTag> others = TeamTagService.Instance.OtherTeamTags(beginner);
-            teamTagOrder.AddRange(others);
-        }
-
-        /// <summary>
         /// Dequeue the TeamTag queue.
         /// </summary>
         public void DequeueTeamTagQueue()
@@ -94,22 +82,50 @@ namespace Assets.Scripts.src.Application.TeamTagQueue.Services
             var teamTag = teamTagQueue.Dequeue();
             currentTeamTag = teamTag;
             var teamUnits = GameObject.FindGameObjectsWithTag(teamTag.ToString()).ToList();
+
+            // If there is no characters, need to instantiate
             if (teamUnits.Count <= 0)
             {
-                InstantiateCharacters(teamTag);
+                CharacterService.Instance.InstantiateCharacters(teamTag);
             }
+            // Else, get team units, enqueue them and dequeue them
             else
             {
-                Debug.Log("Team " + teamTag + " plays.");
-                var teamUnitsQueue = new Queue<GameObject>();
-                teamUnits.ForEach(x => teamUnitsQueue.Enqueue(x));
+                ProcessTeamUnits(teamTag, teamUnits);
+            }
+        }
 
-                while (teamUnitsQueue.Count > 0)
-                {
-                    var unit = teamUnitsQueue.Dequeue();
 
-                    ProcessCharacterUnit(teamTag, unit);
-                }
+        /// <summary>
+        /// Order the teams for the rest of the game.
+        /// </summary>
+        private void FillTeamTagOrder()
+        {
+            // Initialize the list with the one that starts positioned first.
+            TeamTag beginner = InitializeTeamOrderList();
+            // Add the other teams.
+            List<TeamTag> others = TeamTagService.Instance.OtherTeamTags(beginner);
+            teamTagOrder.AddRange(others);
+        }
+
+        private TeamTag InitializeTeamOrderList()
+        {
+            teamTagOrder = new List<TeamTag>();
+            TeamTag beginner = TeamTagService.Instance.RandomTeamTag;
+            teamTagOrder.Add(beginner);
+            return beginner;
+        }
+
+        private static void ProcessTeamUnits(TeamTag teamTag, List<GameObject> teamUnits)
+        {
+            Debug.Log("Team " + teamTag + " plays.");
+            var teamUnitsQueue = new Queue<GameObject>();
+            teamUnits.ForEach(x => teamUnitsQueue.Enqueue(x));
+
+            while (teamUnitsQueue.Count > 0)
+            {
+                var unit = teamUnitsQueue.Dequeue();
+                ProcessCharacterUnit(teamTag, unit);
             }
         }
 
@@ -117,45 +133,11 @@ namespace Assets.Scripts.src.Application.TeamTagQueue.Services
         {
             if (teamTag.Equals(TeamTag.PLAYER))
             {
-                ProcessPlayerUnit(unit);
+                PlayerService.Instance.ProcessPlayerUnit(unit);
             }
             else
             {
-                ProcessNpcUnit(unit);
-            }
-        }
-
-        private static void ProcessNpcUnit(GameObject unit)
-        {
-            Npc npc = unit.GetComponent<Npc>();
-            Debug.Log("Unit: " + unit.name + " - " + npc.TeamTag);
-            npc.CharacterAction();
-        }
-
-        private static void ProcessPlayerUnit(GameObject unit)
-        {
-            MyPlayer myPlayer = unit.GetComponent<MyPlayer>();
-            Debug.Log("Unit: " + unit.name + " - " + myPlayer.TeamTag);
-            myPlayer.CharacterAction();
-        }
-
-        private static void InstantiateCharacters(TeamTag teamTag)
-        {
-            Debug.Log("For team : " + teamTag + ",  0 units, need to instantiate");
-            Time.timeScale = 0;
-            if (teamTag.Equals(TeamTag.PLAYER))
-            {
-                GameStateService.Instance.SetINSTANTIATING_PLAYERState();
-                Debug.Log("Instantiate team PLAYER");
-                PanelService.Instance.TogglePanel(Panels.PANEL_1, true);
-                TextService.Instance.SetInfoTextText(InfoText.INFO_TEXT_1, "PLAYER plays.");
-            }
-            else if (teamTag.Equals(TeamTag.NPC))
-            {
-                GameStateService.Instance.SetINSTANTIATING_NPCState();
-                Debug.Log("Instantiate team NPC");
-                PanelService.Instance.TogglePanel(Panels.PANEL_1, true);
-                TextService.Instance.SetInfoTextText(InfoText.INFO_TEXT_1, "NPC plays.");
+                NpcService.Instance.ProcessNpcUnit(unit);
             }
         }
     }

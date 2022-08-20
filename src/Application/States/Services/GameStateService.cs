@@ -2,16 +2,16 @@
 {
     using Assets.Scripts.src.Application.States.Domain.Enum;
     using Assets.Scripts.src.Common.Contracts;
-    using System;
     using System.Collections.Generic;
+    using static Assets.Scripts.src.Application.States.Domain.Enum.GameState;
 
     public class GameStateService : Singleton<GameStateService>
     {
         public List<GameState> history;
 
-        public GameState currentGameState = GameState.DEFAULT;
+        public GameState currentGameState = DEFAULT;
 
-        public GameState previousGameState = GameState.DEFAULT;
+        public GameState previousGameState = DEFAULT;
 
         private void SetGameState(GameState gameState)
         {
@@ -22,34 +22,52 @@
 
         public void SetINSTANTIATING_PLAYERState()
         {
-            SetGameState(GameState.INSTANTIATING_PLAYER);
+            SetGameState(INSTANTIATING_PLAYER);
         }
 
         public void SetINSTANTIATED_PLAYERState()
         {
-            SetGameState(GameState.INSTANTIATED_PLAYER);
+            SetGameState(INSTANTIATED_PLAYER);
         }
 
         public void SetINSTANTIATING_NPCState()
         {
-            SetGameState(GameState.INSTANTIATING_NPC);
+            SetGameState(INSTANTIATING_NPC);
         }
 
         public void SetINSTANTIATED_NPCState()
         {
-            SetGameState(GameState.INSTANTIATED_NPC);
+            SetGameState(INSTANTIATED_NPC);
         }
 
         public void SetGAME_IS_READYState()
         {
-            SetGameState(GameState.GAME_IS_READY);
+            SetGameState(GAME_IS_READY);
+        }
+
+        public void SetPLAYER_IS_PLAYINGState()
+        {
+            SetGameState(PLAYER_IS_PLAYING);
+        }
+
+        public void SetNPC_HAS_PLAYEDState()
+        {
+            SetGameState(NPC_HAS_PLAYED);
+        }
+
+        public void SetPLAYER_HAS_PLAYEDState()
+        {
+            SetGameState(PLAYER_HAS_PLAYED);
+        }
+
+        public void SetNPC_IS_PLAYINGState()
+        {
+            SetGameState(NPC_IS_PLAYING);
         }
 
         private void Awake()
         {
             history = new List<GameState>();
         }
-
-       
     }
 }

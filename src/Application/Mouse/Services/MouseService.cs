@@ -1,6 +1,8 @@
 namespace Assets.Scripts.src.Application.Mouse.Services
 {
     using Assets.Scripts.src.Application.Panel.Services;
+    using Assets.Scripts.src.Application.States.Domain.Enum;
+    using Assets.Scripts.src.Application.States.Services;
     using Assets.Scripts.src.Common.Contracts;
     using Assets.Scripts.src.Domain.Map.Services;
     using UnityEngine;
@@ -16,7 +18,13 @@ namespace Assets.Scripts.src.Application.Mouse.Services
         // Update is called once per frame
         private void Update()
         {
-            if (!PanelService.Instance.Panel1IsActive)
+            if (
+                (!PanelService.Instance.Panel1IsActive)
+                && 
+                (!GameStateService.Instance.currentGameState.Equals(GameState.INSTANTIATING_NPC))
+                &&
+                (!GameStateService.Instance.currentGameState.Equals(GameState.INSTANTIATED_NPC))
+                )
             {
                 if (Mouse.current.wasUpdatedThisFrame)
                 {
